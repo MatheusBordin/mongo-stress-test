@@ -17,18 +17,21 @@ All tests are executed using mongo connection pool = 15.
 ## results
 All results can be found in `/results` folder.
 
-### Schema
+#### Schema
 The format of results is JSON, your schema is:
 ```json
 {
-  '<test_key>': {
-    duration: Number, // Execution duration in sec.
-    req_per_sec: Mumber, // Requests per seconds.
-    result: [MongoDBExplain] // MongoDB explain result of query.
-  },
-  [...]
+  "<test_key>": {
+    duration: "Number",
+    req_per_sec: "Number",
+    result: "[MongoDBExplain]"
+  }
 }
 ```
+
+**duration** is the execution duration in seconds (Application level).
+**req_per_sec** is the count of requests executed per seconds (Application level).
+**result** is the explain object returned by MongoDB.
 
 ## execution
 For execute the test, create your `.env` (use `.env-example` as schema) and run: 
