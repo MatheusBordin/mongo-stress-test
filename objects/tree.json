@@ -1,0 +1,49 @@
+{
+  "name": "teste",
+  "user": "",
+  "value": 0,
+  "components": [
+    {
+      "id": "1",
+      "name": "teste",
+      "type": "one"
+    },
+    {
+      "id": "2",
+      "name": "teste2",
+      "type": "two"
+    },
+    {
+      "id": "3",
+      "name": "teste3",
+      "type": "three"
+    },
+    {
+      "id": "4",
+      "name": "teste4",
+      "type": "four"
+    }
+  ],
+  "tree": [
+    {
+      "rule": "ever",
+      "component": "1",
+      "childrens": [
+        {
+          "rule": "ever",
+          "component": "2",
+          "childrens": [
+            {
+              "rule": "ever",
+              "component": "3"
+            },
+            {
+              "rule": "ever",
+              "component": "4"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
