@@ -22,9 +22,9 @@ The format of results is JSON, your schema is:
 ```json
 {
   "<test_key>": {
-    duration: "Number",
-    req_per_sec: "Number",
-    result: "[MongoDBExplain]"
+    "duration": "Number",
+    "req_per_sec": "Number",
+    "result": "[MongoDBExplain]"
   }
 }
 ```
