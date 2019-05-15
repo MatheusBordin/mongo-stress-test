@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const mongoose = require('mongoose');
 const chalk = require('chalk');
 
@@ -82,8 +84,24 @@ async function InitTest(key, URI) {
  * @param {*} URI
  */
 async function createConnection(URI) {
+  const hasCert = !!process.env.MONGO_CERT;
+  const options = { 
+    useNewUrlParser: true, 
+    useCreateIndex: true, 
+    poolSize: mongoPoolSize,
+    ssl: false,
+    sslValidate: false,
+    sslCA: null
+  };
+
+  if (hasCert) {
+    const certPath = path.join(__dirname, process.env.MONGO_CERT);
+    options.ssl = true;
+    options.sslCA = fs.readFileSync(certPath);
+  }
+
   try {
-    await mongoose.connect(URI, { useNewUrlParser: true, useCreateIndex: true, poolSize: mongoPoolSize });
+    await mongoose.connect(URI, options);
     console.log(chalk`Mongo connected {green successfuly}\n`);
   } catch (e) {
     throw new Error(`Error on start connection with Mongo, URI: ${URI}, err: ${e}`);
@@ -113,7 +131,6 @@ function getTotal(count, tests) {
 async function insertMany(start, count, user = process.env.USER_ID) {
   const par = Parallel.create(
     async (i) => {
-      console.log(`Index: ${i}`);
       const tree = new Tree({
         ...treeObj,
         user,
@@ -123,7 +140,6 @@ async function insertMany(start, count, user = process.env.USER_ID) {
       });
   
       await tree.save();
-      console.log(`Finish: ${i}`);
     }, 
     count, 
     concurrency
