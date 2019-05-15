@@ -27,6 +27,9 @@ console.log(process.env.MONGO_EXPLAIN);
  */
 async function InitTest(key, URI) {
   try {
+    // Time
+    const initTime = new Date().getTime();
+
     // Initialize.
     await createConnection(URI);
     console.log(chalk`{blue Start} collection drop`);
@@ -71,6 +74,11 @@ async function InitTest(key, URI) {
 
       console.log(chalk`{green Finish} test with ${total} documents\n`);
     }
+
+    const endTime = new Date().getTime();
+    Result.saveResult(`all-tests`, {
+      duration: (endTime - initTime) / 1000
+    });
 
     console.log(chalk`{purple Finish} all tests, waiting dispose...\n`);
   } catch (e) {
@@ -135,7 +143,7 @@ async function insertMany(start, count, user = process.env.USER_ID) {
         user,
         name: `teste-${start + i}`,
         time: new Date(),
-        value: start + i
+        value: i
       });
   
       await tree.save();
@@ -235,11 +243,19 @@ async function findByAgg() {
  * @returns
  */
 async function findInParallel() {
-  const processes = Array.from(new Array(10000), (item, index) => {
-    return Tree.find().skip(index).limit(1);
-  });
+  const p = Parallel.create(
+    async (i) => {
+      await Tree.find({
+        name: {
+          $regex: `test-${i}`
+        }
+      }).explain(process.env.MONGO_EXPLAIN);
+    },
+    1000,
+    1000
+  );
 
-  await Promise.all(processes);
+  await p.waitFinish();
   return null;
 }
 
