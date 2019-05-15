@@ -17,6 +17,8 @@ const mongoPoolSize = parseInt(process.env.MONGO_POOL_SIZE);
 const concurrency = parseInt(process.env.TEST_INSERT_CONCURRENCY);
 const tests = process.env.TEST_RANGES.split(',').map(x => parseInt(x));
 
+console.log(process.env.MONGO_EXPLAIN);
+
 /**
  * Initialize test
  *
@@ -40,7 +42,7 @@ async function InitTest(key, URI) {
       // Create file results
       Result.init(`${key}-${total}`);
 
-      const insert = await Performance(async () => await insertMany(count * idx, count));
+      const insert = await Performance(async () => await insertMany(count * idx, count), count);
       Result.saveResult(`insert-${count}`, insert);
   
       const find = await Performance(findAll);
@@ -88,15 +90,13 @@ async function createConnection(URI) {
   const options = { 
     useNewUrlParser: true, 
     useCreateIndex: true, 
-    poolSize: mongoPoolSize,
-    ssl: false,
-    sslValidate: false,
-    sslCA: null
+    poolSize: mongoPoolSize
   };
 
   if (hasCert) {
     const certPath = path.join(__dirname, process.env.MONGO_CERT);
     options.ssl = true;
+    options.sslValidate = false;
     options.sslCA = fs.readFileSync(certPath);
   }
 
@@ -156,7 +156,7 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  * @returns
  */
 async function findAll() {
-  return await Tree.find().explain('executionStats');
+  return await Tree.find().explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
@@ -165,7 +165,7 @@ async function findAll() {
  * @returns
  */
 async function findAllOrdered() {
-  return await Tree.find().sort({ 'time': -1 }).explain('executionStats');
+  return await Tree.find().sort({ 'time': -1 }).explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
@@ -174,7 +174,7 @@ async function findAllOrdered() {
  * @returns
  */
 async function findAllOrderedIndexed() {
-  return await Tree.find().sort({ 'createdAt': -1 }).explain('executionStats');
+  return await Tree.find().sort({ 'createdAt': -1 }).explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
@@ -183,7 +183,7 @@ async function findAllOrderedIndexed() {
  * @returns
  */
 async function findPopulated() {
-  return await Tree.find().populate('user').explain('executionStats');
+  return await Tree.find().populate('user').explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
@@ -196,7 +196,7 @@ async function findBySubdocs() {
     'components': {
       $elemMatch: { type: 'four' }
     }
-  }).explain('executionStats');
+  }).explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
@@ -209,7 +209,7 @@ async function findByRegex() {
     'name': {
       $regex: 'test'
     }
-  }).explain('executionStats');
+  }).explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
@@ -227,7 +227,7 @@ async function findByAgg() {
         }
       }
     }
-  ]).explain('executionStats');
+  ]).explain(process.env.MONGO_EXPLAIN);
 }
 
 /**
