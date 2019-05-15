@@ -1,3 +1,5 @@
+const chalk = require('chalk');
+
 /**
  * Parallel implementation.
  *
@@ -54,10 +56,8 @@ class Parallel {
    * @memberof Parallel
    */
   start() {
-    this._offset = this._concurrency;
-
 		for (let i = 0; i < this._concurrency; i++) {
-			this._consume(false);
+			this._consume();
 		}
   }
   
@@ -75,7 +75,7 @@ class Parallel {
 
     this._paused = true;
 
-    return new Promise((res) => {
+    return new Promise(async (res) => {
       while (this._processing > 0) {
         await this._sleep(500);
       }
@@ -99,30 +99,52 @@ class Parallel {
     this._paused = false;
     this._concurrency = Math.min(this._concurrency, this._count - this._concurrency);
 
-    this._offset += this._concurrency;
     for (let i = 0; i < this._concurrency; i++) {
 			this._consume(false);
 		}
   }
 
+  /**
+   * Wait for all work be done.
+   *
+   * @returns
+   * @memberof Parallel
+   */
+  waitFinish() {
+    if (this._offset === this._count) {
+      return Promise.resolve();
+    }
+
+    return new Promise((res) => {
+      this._finishHandler = res;
+    });
+  }
+
 	/**
    * Consume message.
    *
-   * @param {boolean} [inc=true]
    * @memberof Parallel
    */
-  async _consume(inc = true) {
+  async _consume() {
     this._processing++;
-
-		if (inc) {
-      this._offset++;
-    }
+    this._offset++;
     
-    await this._handler(this._offset);
+    try {
+      await this._handler(this._offset);
+    } catch (e) {
+      console.log(chalk`{red Error} processing message with offset: ${this._offset}`);
+    }
+
     this._processing--;
 
-		if (this._offset < this._count && !this._paused) {
-			this._consume();
+    if (this._offset === this._count) {
+      // Finish
+      if (this._finishHandler != null) {
+        this._finishHandler();
+      }
+    } else if (!this._paused && this._offset + this._processing < this._count) {
+      // Is not finish and not paused
+      this._consume();
     }
   }
   
@@ -139,3 +161,5 @@ class Parallel {
     });
   }
 }
+
+module.exports = Parallel;

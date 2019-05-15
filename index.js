@@ -1,18 +1,26 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const chalk = require('chalk');
-const Tree = require('./models/tree');
 
-const Result = require('./utils/result');
+// Models
+const Tree = require('./models/tree');
 const treeObj = require('./objects/tree.json');
 
-const loopSize = 25000;
-const tests = [
-  200000,
-  400000,
-  600000,
-  800000
-];
+// Utils
+const Result = require('./utils/result');
+const Parallel = require('./utils/parallel');
 
+// Config
+const mongoPoolSize = parseInt(process.env.MONGO_POOL_SIZE);
+const concurrency = parseInt(process.env.TEST_INSERT_CONCURRENCY);
+const tests = process.env.TEST_RANGES.split(',').map(x => parseInt(x));
+
+/**
+ * Initialize test
+ *
+ * @param {String} key Test key.
+ * @param {String} URI Mongo connection URI.
+ */
 async function InitTest(key, URI) {
   try {
     // Initialize.
@@ -22,26 +30,16 @@ async function InitTest(key, URI) {
     console.log(chalk`{green Finish} collection drop\n`);
 
     // Test each.
-    for (const end of tests) {      
-      let idx = tests.indexOf(end);
-      let total = 0;
-      while (idx >= 0) {
-        total += tests[idx];
-        idx--;
-      }
+    for (const count of tests) {      
+      const {idx, total} = getTotal(count, tests);
 
       console.log(chalk`{blue Start} test with ${total} documents`);
 
       // Create file results
-      Result.init(`key-${total}`);
+      Result.init(`${key}-${total}`);
 
-      const loopCount = end / loopSize;
-      let count = end / loopCount;
-
-      for (let i = 0; i < loopCount; i++) {
-        const insert = await Performance(async () => await insertMany(count * i, count * i + count), count);
-        Result.saveResult(`insert-${end}-${i}`, insert);
-      }
+      const insert = await Performance(async () => await insertMany(count * idx, count));
+      Result.saveResult(`insert-${count}`, insert);
   
       const find = await Performance(findAll);
       Result.saveResult(`find-${total}`, find);
@@ -85,35 +83,54 @@ async function InitTest(key, URI) {
  */
 async function createConnection(URI) {
   try {
-    await mongoose.connect(URI, { useNewUrlParser: true, useCreateIndex: true, poolSize: 15 });
+    await mongoose.connect(URI, { useNewUrlParser: true, useCreateIndex: true, poolSize: mongoPoolSize });
     console.log(chalk`Mongo connected {green successfuly}\n`);
   } catch (e) {
     throw new Error(`Error on start connection with Mongo, URI: ${URI}, err: ${e}`);
   }
 }
 
+function getTotal(count, tests) {
+  let idx = tests.indexOf(count);
+  let total = 0;
+
+  while (idx >= 0) {
+    total += tests[idx];
+    idx--;
+  }
+
+  return { idx, total };
+}
+
 /**
  * Insert many documents.
  *
- * @param {number} [start=0] Start index
- * @param {number} [end=25000] End index
+ * @param {number} start Start index
+ * @param {number} count End index
  * @param {string} [user='5cd99e130c21524ec39ab60f'] User for populate
  * @returns
  */
-async function insertMany(start = 0, end = 25000, user = '5cd99e130c21524ec39ab60f') {
-  const processes = Array.from(new Array(end - start), (item, index) => {
-    const tree = new Tree({
-      ...treeObj,
-      user,
-      name: `teste-${start + index + 1}`,
-      time: new Date(),
-      value: start + index + 1
-    });
-
-    return tree.save();
-  });
+async function insertMany(start, count, user = '5cd99e130c21524ec39ab60f') {
+  const par = Parallel.create(
+    async (i) => {
+      console.log(`Index: ${i}`);
+      const tree = new Tree({
+        ...treeObj,
+        user,
+        name: `teste-${start + i}`,
+        time: new Date(),
+        value: start + i
+      });
   
-  await Promise.all(processes);
+      await tree.save();
+      console.log(`Finish: ${i}`);
+    }, 
+    count, 
+    concurrency
+  );
+
+  await par.waitFinish();
+
   return null;
 }
 
@@ -214,7 +231,7 @@ async function findInParallel() {
 /**
  * Listen function performance.
  *
- * @param {*} fn
+ * @param {Function} fn
  * @param {number} [req=1]
  * @returns
  */
@@ -233,7 +250,7 @@ async function Performance(fn, req = 1) {
   return {
     result,
     duration,
-    req_per_sec: duration / req,
+    req_per_sec: req / duration,
   };
 }
 
