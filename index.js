@@ -110,7 +110,7 @@ function getTotal(count, tests) {
  * @param {string} [user='5cd99e130c21524ec39ab60f'] User for populate
  * @returns
  */
-async function insertMany(start, count, user = '5cd99e130c21524ec39ab60f') {
+async function insertMany(start, count, user = process.env.USER_ID) {
   const par = Parallel.create(
     async (i) => {
       console.log(`Index: ${i}`);
