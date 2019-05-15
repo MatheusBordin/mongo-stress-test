@@ -78,7 +78,7 @@ async function InitTest(key, URI) {
       duration: (endTime - initTime) / 1000
     });
 
-    console.log(chalk`{purple Finish} all tests, waiting dispose...\n`);
+    console.log(chalk`{pink Finish} all tests, waiting dispose...\n`);
   } catch (e) {
     console.log(chalk`{red Error} on running the task: \n`, e);
     process.exit(1);
