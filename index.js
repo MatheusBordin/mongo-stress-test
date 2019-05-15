@@ -72,8 +72,7 @@ async function InitTest(key, URI) {
       console.log(chalk`{green Finish} test with ${total} documents\n`);
     }
 
-    // Finish tests.
-    await mongoose.disconnect();
+    console.log(chalk`{purple Finish} all tests, waiting dispose...\n`);
   } catch (e) {
     console.log(chalk`{red Error} on running the task: \n`, e);
     process.exit(1);
