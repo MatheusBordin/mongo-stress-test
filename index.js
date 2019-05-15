@@ -17,8 +17,6 @@ const mongoPoolSize = parseInt(process.env.MONGO_POOL_SIZE);
 const concurrency = parseInt(process.env.TEST_INSERT_CONCURRENCY);
 const tests = process.env.TEST_RANGES.split(',').map(x => parseInt(x));
 
-console.log(process.env.MONGO_EXPLAIN);
-
 /**
  * Initialize test
  *
