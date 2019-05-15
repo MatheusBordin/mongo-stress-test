@@ -161,7 +161,7 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  * @returns
  */
 async function findAll() {
-  return await Tree.find().explain(process.env.MONGO_EXPLAIN);
+  return await Tree.find().explain();
 }
 
 /**
@@ -170,7 +170,7 @@ async function findAll() {
  * @returns
  */
 async function findAllOrdered() {
-  return await Tree.find().sort({ 'time': -1 }).explain(process.env.MONGO_EXPLAIN);
+  return await Tree.find().sort({ 'time': -1 }).explain();
 }
 
 /**
@@ -179,7 +179,7 @@ async function findAllOrdered() {
  * @returns
  */
 async function findAllOrderedIndexed() {
-  return await Tree.find().sort({ 'createdAt': -1 }).explain(process.env.MONGO_EXPLAIN);
+  return await Tree.find().sort({ 'createdAt': -1 }).explain();
 }
 
 /**
@@ -188,7 +188,7 @@ async function findAllOrderedIndexed() {
  * @returns
  */
 async function findPopulated() {
-  return await Tree.find().populate('user').explain(process.env.MONGO_EXPLAIN);
+  return await Tree.find().populate('user').explain();
 }
 
 /**
@@ -201,7 +201,7 @@ async function findBySubdocs() {
     'components': {
       $elemMatch: { type: 'four' }
     }
-  }).explain(process.env.MONGO_EXPLAIN);
+  }).explain();
 }
 
 /**
@@ -214,7 +214,7 @@ async function findByRegex() {
     'name': {
       $regex: 'test'
     }
-  }).explain(process.env.MONGO_EXPLAIN);
+  }).explain();
 }
 
 /**
@@ -232,7 +232,7 @@ async function findByAgg() {
         }
       }
     }
-  ]).explain(process.env.MONGO_EXPLAIN);
+  ]).explain();
 }
 
 /**
@@ -247,7 +247,7 @@ async function findInParallel() {
         name: {
           $regex: `test-${i}`
         }
-      }).explain(process.env.MONGO_EXPLAIN);
+      }).explain();
     },
     1000,
     1000
