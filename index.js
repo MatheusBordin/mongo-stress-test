@@ -141,7 +141,7 @@ async function insertMany(start, count, user = process.env.USER_ID) {
         user,
         name: `teste-${start + i}`,
         time: new Date(),
-        value: i
+        value: 1
       });
   
       await tree.save();
@@ -245,7 +245,7 @@ async function findInParallel() {
     async (i) => {
       await Tree.find({
         name: {
-          $regex: `test-${i}`
+          $regex: `test${i}`
         }
       }).explain();
     },

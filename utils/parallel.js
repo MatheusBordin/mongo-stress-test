@@ -37,6 +37,10 @@ class Parallel {
     this._offset = 0;
     this._paused = false;
     this._processing = 0;
+
+    if (this._count < this._concurrency) {
+      this._concurrency = this._count;
+    }
   }
   
   /**
