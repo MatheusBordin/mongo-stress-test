@@ -40,8 +40,8 @@ async function InitTest(key, URI) {
       // Create file results
       Result.init(`${key}-${total}`);
 
-      // const find = await Performance(async () => await findAll(total));
-      // Result.saveResult(`find`, find);
+      const find = await Performance(async () => await findAll(total));
+      Result.saveResult(`find`, find);
   
       const findOrdered = await Performance(async () => await findAllOrdered(total));
       Result.saveResult(`find-ordered`, findOrdered);
@@ -61,8 +61,8 @@ async function InitTest(key, URI) {
       const findWithAgg = await Performance(async () => await findByAgg(total));
       Result.saveResult(`find-agg`, findWithAgg);
 
-      const findParallel = await Performance(async () => await findInParallel(total), 10000);
-      Result.saveResult(`find-parallel`, findParallel);
+      // const findParallel = await Performance(async () => await findInParallel(total), 10000);
+      // Result.saveResult(`find-parallel`, findParallel);
 
       console.log(chalk`{green Finish} test with ${total} documents\n`);
     }
