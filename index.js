@@ -30,9 +30,6 @@ async function InitTest(key, URI) {
 
     // Initialize.
     await createConnection(URI);
-    console.log(chalk`{blue Start} collection drop`);
-    await Tree.collection.drop();
-    console.log(chalk`{green Finish} collection drop\n`);
 
     // Test each.
     for (const count of tests) {      
@@ -43,32 +40,29 @@ async function InitTest(key, URI) {
       // Create file results
       Result.init(`${key}-${total}`);
 
-      const insert = await Performance(async () => await insertMany(count * idx, count), count);
-      Result.saveResult(`insert-${count}`, insert);
+      const find = await Performance(async () => await findAll(total));
+      Result.saveResult(`find`, find);
   
-      const find = await Performance(findAll);
-      Result.saveResult(`find-${total}`, find);
+      const findOrdered = await Performance(async () => await findAllOrdered(total));
+      Result.saveResult(`find-ordered`, findOrdered);
   
-      const findOrdered = await Performance(findAllOrdered);
-      Result.saveResult(`find-ordered-${total}`, findOrdered);
+      const findOrderedWithIndex = await Performance(async () => await findAllOrderedIndexed(total));
+      Result.saveResult(`find-ordered`, findOrderedWithIndex);
   
-      const findOrderedWithIndex = await Performance(findAllOrderedIndexed);
-      Result.saveResult(`find-ordered-indexed-${total}`, findOrderedWithIndex);
+      const findPopulate = await Performance(async () => await findPopulated(total));
+      Result.saveResult(`find-populate`, findPopulate);
   
-      const findPopulate = await Performance(findPopulated);
-      Result.saveResult(`find-populate-${total}`, findPopulate);
-  
-      const findSubdocs = await Performance(findBySubdocs);
-      Result.saveResult(`find-subdocs-${total}`, findSubdocs);
+      const findSubdocs = await Performance(async () => await findBySubdocs(total));
+      Result.saveResult(`find-subdocs`, findSubdocs);
 
-      const findWithRegex = await Performance(findByRegex);
-      Result.saveResult(`find-regex-${total}`, findWithRegex);
+      const findWithRegex = await Performance(async () => await findByRegex(total));
+      Result.saveResult(`find-regex`, async () => await findWithRegex(total));
 
-      const findWithAgg = await Performance(findByAgg);
-      Result.saveResult(`find-agg-${total}`, findWithAgg);
+      const findWithAgg = await Performance(async () => await findByAgg(total));
+      Result.saveResult(`find-agg`, findWithAgg);
 
-      const findParallel = await Performance(findInParallel, 10000);
-      Result.saveResult(`find-parallel-${total}`, findParallel);
+      const findParallel = await Performance(async () => await findInParallel(total), 10000);
+      Result.saveResult(`find-parallel`, findParallel);
 
       console.log(chalk`{green Finish} test with ${total} documents\n`);
     }
@@ -160,8 +154,9 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  *
  * @returns
  */
-async function findAll() {
-  return await Tree.find().explain();
+async function findAll(total) {
+  await Tree.find().limit(total);
+  return null;
 }
 
 /**
@@ -169,8 +164,9 @@ async function findAll() {
  *
  * @returns
  */
-async function findAllOrdered() {
-  return await Tree.find().sort({ 'time': -1 }).explain();
+async function findAllOrdered(total) {
+  await Tree.find().limit(total).sort({ 'time': -1 });
+  return null;
 }
 
 /**
@@ -178,8 +174,9 @@ async function findAllOrdered() {
  *
  * @returns
  */
-async function findAllOrderedIndexed() {
-  return await Tree.find().sort({ 'createdAt': -1 }).explain();
+async function findAllOrderedIndexed(total) {
+  await Tree.find().limit(total).sort({ 'createdAt': -1 });
+  return null;
 }
 
 /**
@@ -187,8 +184,8 @@ async function findAllOrderedIndexed() {
  *
  * @returns
  */
-async function findPopulated() {
-  return await Tree.find().populate('user').explain();
+async function findPopulated(total) {
+  await Tree.find().limit(total).populate('user');
 }
 
 /**
@@ -196,12 +193,13 @@ async function findPopulated() {
  *
  * @returns
  */
-async function findBySubdocs() {
-  return await Tree.find({
+async function findBySubdocs(total) {
+  await Tree.find({
     'components': {
       $elemMatch: { type: 'four' }
     }
-  }).explain();
+  }).limit(total);
+  return null;
 }
 
 /**
@@ -209,12 +207,14 @@ async function findBySubdocs() {
  *
  * @returns
  */
-async function findByRegex() {
-  return await Tree.find({
+async function findByRegex(total) {
+  await Tree.find({
     'name': {
       $regex: 'test'
     }
-  }).explain();
+  }).limit(total);
+
+  return null;
 }
 
 /**
@@ -222,8 +222,8 @@ async function findByRegex() {
  *
  * @returns
  */
-async function findByAgg() {
-  return await Tree.aggregate([
+async function findByAgg(total) {
+  await Tree.aggregate([
     {
       $group : {
         _id : null,
@@ -232,7 +232,7 @@ async function findByAgg() {
         }
       }
     }
-  ]).explain();
+  ]).limit(total);
 }
 
 /**
@@ -245,9 +245,9 @@ async function findInParallel() {
     async (i) => {
       await Tree.find({
         name: {
-          $regex: `test${i}`
+          $regex: `test`
         }
-      }).explain();
+      }).limit(total);
     },
     1000,
     1000
