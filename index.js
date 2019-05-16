@@ -157,7 +157,7 @@ async function insertMany(start, count, user = process.env.USER_ID) {
 async function findAll(total) {
   await Tree.aggregate([
     { $limit: total },
-    { $count: count }
+    { $count: 'count' }
   ]).exec();
   return null;
 }
