@@ -56,7 +56,7 @@ async function InitTest(key, URI) {
       Result.saveResult(`find-subdocs`, findSubdocs);
 
       const findWithRegex = await Performance(async () => await findByRegex(total));
-      Result.saveResult(`find-regex`, async () => await findWithRegex(total));
+      Result.saveResult(`find-regex`, findWithRegex);
 
       const findWithAgg = await Performance(async () => await findByAgg(total));
       Result.saveResult(`find-agg`, findWithAgg);
