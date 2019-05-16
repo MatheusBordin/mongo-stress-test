@@ -154,9 +154,10 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  *
  * @returns
  */
-async function findAll(total) {
-  await Tree.find().limit(total);
-  return null;
+function findAll(total) {
+  return new Promise((res) => {
+    Tree.find().limit(total).cursor().on('end', res);
+  });
 }
 
 /**
@@ -164,9 +165,10 @@ async function findAll(total) {
  *
  * @returns
  */
-async function findAllOrdered(total) {
-  await Tree.find().limit(total).sort({ 'time': -1 });
-  return null;
+function findAllOrdered(total) {
+  return new Promise((res) => {
+    Tree.find().limit(total).sort({ 'time': -1 }).cursor().on('end', res);
+  });
 }
 
 /**
@@ -174,9 +176,10 @@ async function findAllOrdered(total) {
  *
  * @returns
  */
-async function findAllOrderedIndexed(total) {
-  await Tree.find().limit(total).sort({ 'createdAt': -1 });
-  return null;
+function findAllOrderedIndexed(total) {
+  return new Promise((res) => {
+    Tree.find().limit(total).sort({ 'createdAt': -1 }).cursor().on('end', res);
+  });
 }
 
 /**
@@ -184,8 +187,10 @@ async function findAllOrderedIndexed(total) {
  *
  * @returns
  */
-async function findPopulated(total) {
-  await Tree.find().limit(total).populate('user');
+function findPopulated(total) {
+  return new Promise((res) => {
+    Tree.find().limit(total).populate('user').cursor().on('end', res);
+  });
 }
 
 /**
@@ -193,13 +198,14 @@ async function findPopulated(total) {
  *
  * @returns
  */
-async function findBySubdocs(total) {
-  await Tree.find({
-    'components': {
-      $elemMatch: { type: 'four' }
-    }
-  }).limit(total);
-  return null;
+function findBySubdocs(total) {
+  return new Promise((res) => {
+    Tree.find({
+      'components': {
+        $elemMatch: { type: 'four' }
+      }
+    }).limit(total).cursor().on('end', res);
+  });
 }
 
 /**
@@ -207,14 +213,14 @@ async function findBySubdocs(total) {
  *
  * @returns
  */
-async function findByRegex(total) {
-  await Tree.find({
-    'name': {
-      $regex: 'test'
-    }
-  }).limit(total);
-
-  return null;
+function findByRegex(total) {
+  return new Promise((res) => {
+    Tree.find({
+      'name': {
+        $regex: 'test'
+      }
+    }).limit(total).cursor().on('end', res);
+  });
 }
 
 /**
@@ -223,16 +229,12 @@ async function findByRegex(total) {
  * @returns
  */
 async function findByAgg(total) {
-  await Tree.aggregate([
-    {
-      $group : {
-        _id : null,
-        total : {
-            $sum : "$value"
-        }
-      }
+  await Tree.aggregate().limit(total).group({
+    _id : null,
+    total : {
+      $sum : "$value"
     }
-  ]).limit(total);
+  });
 }
 
 /**
@@ -242,12 +244,14 @@ async function findByAgg(total) {
  */
 async function findInParallel(total) {
   const p = Parallel.create(
-    async (i) => {
-      await Tree.find({
-        name: {
-          $regex: `test`
-        }
-      }).limit(total);
+    (i) => {
+      return new Promise((res) => {
+        Tree.find({
+          name: {
+            $regex: `test`
+          }
+        }).limit(total).cursor().on('end', res);
+      });
     },
     1000,
     1000
