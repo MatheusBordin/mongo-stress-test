@@ -168,11 +168,7 @@ async function findAll(total) {
  * @returns
  */
 async function findAllOrdered(total) {
-  await Tree.aggregate([
-    { $limit: total },
-    { $sort: { time: 1 } },
-    { $count: 'count' }
-  ]).exec();
+  await Tree.find().limit(total).sort({ time: 1 }).count().exec();
   return null;
 }
 
@@ -182,11 +178,7 @@ async function findAllOrdered(total) {
  * @returns
  */
 async function findAllOrderedIndexed(total) {
-  await Tree.aggregate([
-    { $limit: total },
-    { $sort: { 'createdAt': 1 } },
-    { $count: 'count' }
-  ]).exec();
+  await Tree.find().limit(total).sort({ 'createdAt': 1 }).count().exec();
   return null;
 }
 
@@ -196,11 +188,8 @@ async function findAllOrderedIndexed(total) {
  * @returns
  */
 async function findPopulated(total) {
-  await Tree.aggregate([
-    { $limit: total },
-    { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'users' } },
-    { $count: 'count' }
-  ]).exec();
+  await Tree.find().limit(total).populate('user').count().exec();
+  return null;
 }
 
 /**
@@ -209,19 +198,13 @@ async function findPopulated(total) {
  * @returns
  */
 async function findBySubdocs(total) {
-  await Tree.aggregate([
-    { $limit: total },
-    { 
-      $match: {
-        'components': {
-          $elemMatch: {
-            type: 'four'
-          }
-        }
-      } 
-    },
-    { $count: 'count' }
-  ]).exec();
+  await Tree.find({
+    'components': {
+      $elemMatch: {
+        type: 'four'
+      }
+    }
+  }).limit(total).count().exec();
   return null;
 }
 
@@ -231,17 +214,11 @@ async function findBySubdocs(total) {
  * @returns
  */
 async function findByRegex(total) {
-  await Tree.aggregate([
-    { $limit: total },
-    {
-      $match: {
-        'name': {
-          $regex: 'test'
-        }
-      }
-    },
-    { $count: 'count' }
-  ]).exec();
+  await Tree.find({
+    'name': {
+      $regex: 'test'
+    }
+  }).limit(total).count().exec();
 
   return null;
 }
@@ -261,9 +238,10 @@ async function findByAgg(total) {
             $sum : "$value"
         }
       }
-    },
-    { $count: 'count' }
+    }
   ]).exec();
+
+  return null;
 }
 
 /**
