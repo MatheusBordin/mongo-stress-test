@@ -156,7 +156,7 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  */
 function findAll(total) {
   return new Promise((res) => {
-    Tree.find().limit(total).cursor().on('end', res);
+    Tree.find().limit(total).cursor().on('close', res);
   });
 }
 
@@ -167,7 +167,7 @@ function findAll(total) {
  */
 function findAllOrdered(total) {
   return new Promise((res) => {
-    Tree.find().limit(total).sort({ 'time': -1 }).cursor().on('end', res);
+    Tree.find().limit(total).sort({ 'time': -1 }).cursor().on('close', res);
   });
 }
 
@@ -178,7 +178,7 @@ function findAllOrdered(total) {
  */
 function findAllOrderedIndexed(total) {
   return new Promise((res) => {
-    Tree.find().limit(total).sort({ 'createdAt': -1 }).cursor().on('end', res);
+    Tree.find().limit(total).sort({ 'createdAt': -1 }).cursor().on('close', res);
   });
 }
 
@@ -189,7 +189,7 @@ function findAllOrderedIndexed(total) {
  */
 function findPopulated(total) {
   return new Promise((res) => {
-    Tree.find().limit(total).populate('user').cursor().on('end', res);
+    Tree.find().limit(total).populate('user').cursor().on('close', res);
   });
 }
 
@@ -204,7 +204,7 @@ function findBySubdocs(total) {
       'components': {
         $elemMatch: { type: 'four' }
       }
-    }).limit(total).cursor().on('end', res);
+    }).limit(total).cursor().on('close', res);
   });
 }
 
@@ -219,7 +219,7 @@ function findByRegex(total) {
       'name': {
         $regex: 'test'
       }
-    }).limit(total).cursor().on('end', res);
+    }).limit(total).cursor().on('close', res);
   });
 }
 
@@ -250,7 +250,7 @@ async function findInParallel(total) {
           name: {
             $regex: `test`
           }
-        }).limit(total).cursor().on('end', res);
+        }).limit(total).cursor().on('close', res);
       });
     },
     1000,
