@@ -155,8 +155,12 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  * @returns
  */
 function findAll(total) {
+  let i = 0;
   return new Promise((res) => {
-    Tree.find().limit(total).cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
+    Tree.find().limit(total).cursor().on('data', () => {
+      i++;
+      console.log(`processing: ${i}`)
+    }).on('end', res);
   });
 }
 
