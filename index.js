@@ -154,14 +154,12 @@ async function insertMany(start, count, user = process.env.USER_ID) {
  *
  * @returns
  */
-function findAll(total) {
-  let i = 0;
-  return new Promise((res) => {
-    Tree.find().limit(total).cursor().on('data', () => {
-      i++;
-      console.log(`processing: ${i}`)
-    }).on('end', res);
-  });
+async function findAll(total) {
+  await Tree.aggregate([
+    { $limit: total },
+    { $count: count }
+  ]).exec();
+  return null;
 }
 
 /**
@@ -169,10 +167,13 @@ function findAll(total) {
  *
  * @returns
  */
-function findAllOrdered(total) {
-  return new Promise((res) => {
-    Tree.find().limit(total).sort({ 'time': -1 }).cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
-  });
+async function findAllOrdered(total) {
+  await Tree.aggregate([
+    { $limit: total },
+    { $sort: { time: 1 } },
+    { $count: 'count' }
+  ]).exec();
+  return null;
 }
 
 /**
@@ -180,10 +181,13 @@ function findAllOrdered(total) {
  *
  * @returns
  */
-function findAllOrderedIndexed(total) {
-  return new Promise((res) => {
-    Tree.find().limit(total).sort({ 'createdAt': -1 }).cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
-  });
+async function findAllOrderedIndexed(total) {
+  await Tree.aggregate([
+    { $limit: total },
+    { $sort: { 'createdAt': 1 } },
+    { $count: 'count' }
+  ]).exec();
+  return null;
 }
 
 /**
@@ -191,10 +195,12 @@ function findAllOrderedIndexed(total) {
  *
  * @returns
  */
-function findPopulated(total) {
-  return new Promise((res) => {
-    Tree.find().limit(total).populate('user').cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
-  });
+async function findPopulated(total) {
+  await Tree.aggregate([
+    { $limit: total },
+    { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'users' } },
+    { $count: 'count' }
+  ]).exec();
 }
 
 /**
@@ -202,14 +208,21 @@ function findPopulated(total) {
  *
  * @returns
  */
-function findBySubdocs(total) {
-  return new Promise((res) => {
-    Tree.find({
-      'components': {
-        $elemMatch: { type: 'four' }
-      }
-    }).limit(total).cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
-  });
+async function findBySubdocs(total) {
+  await Tree.aggregate([
+    { $limit: total },
+    { 
+      $match: {
+        'components': {
+          $elemMatch: {
+            type: 'four'
+          }
+        }
+      } 
+    },
+    { $count: 'count' }
+  ]).exec();
+  return null;
 }
 
 /**
@@ -217,14 +230,20 @@ function findBySubdocs(total) {
  *
  * @returns
  */
-function findByRegex(total) {
-  return new Promise((res) => {
-    Tree.find({
-      'name': {
-        $regex: 'test'
+async function findByRegex(total) {
+  await Tree.aggregate([
+    { $limit: total },
+    {
+      $match: {
+        'name': {
+          $regex: 'test'
+        }
       }
-    }).limit(total).cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
-  });
+    },
+    { $count: 'count' }
+  ]).exec();
+
+  return null;
 }
 
 /**
@@ -233,12 +252,18 @@ function findByRegex(total) {
  * @returns
  */
 async function findByAgg(total) {
-  await Tree.aggregate().limit(total).group({
-    _id : null,
-    total : {
-      $sum : "$value"
-    }
-  });
+  await Tree.aggregate([
+    { $limit: total },
+    {
+      $group : {
+        _id : null,
+        total : {
+            $sum : "$value"
+        }
+      }
+    },
+    { $count: 'count' }
+  ]).exec();
 }
 
 /**
@@ -248,14 +273,18 @@ async function findByAgg(total) {
  */
 async function findInParallel(total) {
   const p = Parallel.create(
-    (i) => {
-      return new Promise((res) => {
-        Tree.find({
-          name: {
-            $regex: `test`
+    async (i) => {
+      await Tree.aggregate([
+        { $limit: total },
+        {
+          $match: {
+            name: {
+              $regex: `test--${i}`
+            }
           }
-        }).limit(total).cursor().on('data', () => console.log(`processing: ${total}`)).on('end', res);
-      });
+        },
+        { $count: 'count' }
+      ]).exec();
     },
     1000,
     1000
