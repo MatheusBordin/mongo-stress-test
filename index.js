@@ -240,7 +240,7 @@ async function findByAgg(total) {
  *
  * @returns
  */
-async function findInParallel() {
+async function findInParallel(total) {
   const p = Parallel.create(
     async (i) => {
       await Tree.find({
