@@ -40,8 +40,8 @@ async function InitTest(key, URI) {
       // Create file results
       Result.init(`${key}-${total}`);
 
-      const find = await Performance(async () => await findAll(total));
-      Result.saveResult(`find`, find);
+      // const find = await Performance(async () => await findAll(total));
+      // Result.saveResult(`find`, find);
   
       const findOrdered = await Performance(async () => await findAllOrdered(total));
       Result.saveResult(`find-ordered`, findOrdered);
@@ -158,7 +158,7 @@ async function findAll(total) {
   await Tree.aggregate([
     { $limit: total },
     { $count: 'count' }
-  ]).exec();
+  ]);
   return null;
 }
 
