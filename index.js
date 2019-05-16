@@ -47,10 +47,10 @@ async function InitTest(key, URI) {
       Result.saveResult(`find-ordered`, findOrdered);
   
       const findOrderedWithIndex = await Performance(async () => await findAllOrderedIndexed(total));
-      Result.saveResult(`find-ordered`, findOrderedWithIndex);
+      Result.saveResult(`find-ordered-indexed`, findOrderedWithIndex);
   
-      const findPopulate = await Performance(async () => await findPopulated(total));
-      Result.saveResult(`find-populate`, findPopulate);
+      // const findPopulate = await Performance(async () => await findPopulated(total));
+      // Result.saveResult(`find-populate`, findPopulate);
   
       const findSubdocs = await Performance(async () => await findBySubdocs(total));
       Result.saveResult(`find-subdocs`, findSubdocs);
