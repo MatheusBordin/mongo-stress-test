@@ -168,7 +168,7 @@ async function findAll(total) {
  * @returns
  */
 async function findAllOrdered(total) {
-  await Tree.find().limit(total).sort({ time: 1 }).count().exec();
+  await Tree.find().limit(total).sort({ time: 1 }).countDocuments().exec();
   return null;
 }
 
@@ -178,7 +178,7 @@ async function findAllOrdered(total) {
  * @returns
  */
 async function findAllOrderedIndexed(total) {
-  await Tree.find().limit(total).sort({ 'createdAt': 1 }).count().exec();
+  await Tree.find().limit(total).sort({ 'createdAt': 1 }).countDocuments().exec();
   return null;
 }
 
@@ -188,7 +188,7 @@ async function findAllOrderedIndexed(total) {
  * @returns
  */
 async function findPopulated(total) {
-  await Tree.find().limit(total).populate('user').count().exec();
+  await Tree.find().limit(total).populate('user').countDocuments().exec();
   return null;
 }
 
@@ -204,7 +204,7 @@ async function findBySubdocs(total) {
         type: 'four'
       }
     }
-  }).limit(total).count().exec();
+  }).limit(total).countDocuments().exec();
   return null;
 }
 
@@ -218,7 +218,7 @@ async function findByRegex(total) {
     'name': {
       $regex: 'test'
     }
-  }).limit(total).count().exec();
+  }).limit(total).countDocuments().exec();
 
   return null;
 }
